@@ -5,9 +5,11 @@ import (
 	"encoding/hex"
 	"github.com/edsrzf/mmap-go"
 	"log"
+    "math/rand"
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 	"unicode"
@@ -198,6 +200,10 @@ func Lines2Bytes(lines []string) []byte {
 	return buf
 } // end func Lines2Bytes
 
+func Bytes2Lines(data []byte) []string {
+	return strings.Split(string(data), "\n")
+} // end func Bytes2Lines
+
 // linux syscall for Fallocate
 func Fallocate(file *os.File, offset int64, length int64) error {
 	if length == 0 {
@@ -205,6 +211,16 @@ func Fallocate(file *os.File, offset int64, length int64) error {
 	}
 	return syscall.Fallocate(int(file.Fd()), 0, offset, length)
 } // end func Fallocate
+
+func RandomCharsHex(size int) string {
+	rand.Seed(time.Now().UnixNano())
+    charset := "0123456789abcdef"
+    buf := make([]byte, size)
+    for i := 0; i < size; i++ {
+        buf[i] = charset[rand.Intn(len(charset))]
+    }
+    return string(buf)
+} // end func randomChars
 
 func Now() int64 {
 	return UnixTimeSec()
@@ -241,3 +257,20 @@ func DebugSleepS(sec int) {
 func DebugSleepM(microsec int) {
 	time.Sleep(time.Duration(microsec) * time.Microsecond)
 } // end func DebugSleepM
+
+func SleepS(sec int) {
+	time.Sleep(time.Duration(sec) * time.Second)
+} // end func SleepS
+
+func SleepMS(millisec int) {
+	time.Sleep(time.Duration(millisec) * time.Millisecond)
+} // end func SleepMS
+
+func SleepM(microsec int) {
+	time.Sleep(time.Duration(microsec) * time.Microsecond)
+} // end func SleepM
+
+func CheckNumberPowerOfTwo(n int) int {
+	// result 0 is pow^2
+	return n & (n-1)
+} // end func CheckNumberPowerOfTwo

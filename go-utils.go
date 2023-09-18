@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/edsrzf/mmap-go"
 	"log"
     "math/rand"
@@ -39,24 +40,28 @@ func MMAP_FILE(file_path string, mode string) (*os.File, mmap.MMap, error) {
 } // end func MMAP_FILE
 
 func MMAP_CLOSE(file_path string, file_handle *os.File, mmap_handle mmap.MMap, mode string) (bool, error) {
+	if mmap_handle == nil {
+		err := fmt.Errorf("Error MMAP_CLOSE mmap_handle=nil")
+		return false, err
+	}
 	if mode == "rw" {
 		if err := mmap_handle.Flush(); err != nil {
-			log.Printf("ERROR MMAP_CLOSE Flush file_path='%s' err='%v'", file_path, err)
+			log.Printf("Error MMAP_CLOSE Flush file_path='%s' err='%v'", file_path, err)
 			return false, err
 		}
 	}
 
 	if err := mmap_handle.Unmap(); err != nil {
-		log.Printf("ERROR MMAP_CLOSE Unmap file_path='%s' err='%v'", file_path, err)
+		log.Printf("Error MMAP_CLOSE Unmap file_path='%s' err='%v'", file_path, err)
 		return false, err
 	}
 
 	if err := file_handle.Close(); err != nil {
-		log.Printf("ERROR MMAP_CLOSE Close file_path='%s' err='%v'", file_path, err)
+		log.Printf("Error MMAP_CLOSE Close file_path='%s' err='%v'", file_path, err)
 		return false, err
 	}
 
-	//log.Printf("File closed OK fp='%s'", file_path)
+	log.Printf("MMAP_CLOSE File closed OK fp='%s'", file_path)
 	return true, nil
 } // end func MMAP_CLOSE
 
@@ -274,3 +279,55 @@ func CheckNumberPowerOfTwo(n int) int {
 	// result 0 is pow^2
 	return n & (n-1)
 } // end func CheckNumberPowerOfTwo
+
+
+// Function to escape dot-stuffing in a []byte
+func DotStuffingByte(input []byte) []byte {
+	lines := strings.Split(string(input), "\n")
+	var result []byte
+	for _, line := range lines {
+		// Check if the line starts with a period
+		if strings.HasPrefix(line, ".") {
+			// Replace the leading period with two periods
+			line = "." + line
+		}
+		// Append the line to the result
+		result = append(result, []byte(line)...)
+		// Append a newline character
+		result = append(result, '\n')
+	}
+	return result
+}
+
+func UndoDotStuffingLines(lines *[]string) *[]string {
+	var result []string
+	for _, line := range *lines {
+		// Check if the line starts with two periods
+		if strings.HasPrefix(line, "..") {
+			// Remove the extra period from the line
+			line = line[1:]
+		}
+		line = line + "\n"
+		// Append the line to the result
+		result = append(result, line)
+	}
+	return &result
+} // end func undoDotStuffingLines
+
+// Function to undo dot-stuffing in a []byte
+func UndoDotStuffingByte(input []byte) []byte {
+	lines := strings.Split(string(input), "\n")
+	var result []byte
+	for _, line := range lines {
+		// Check if the line starts with two periods
+		if strings.HasPrefix(line, "..") {
+			// Remove the extra period from the line
+			line = line[1:]
+		}
+		// Append the line to the result
+		result = append(result, []byte(line)...)
+		// Append a newline character
+		result = append(result, '\n')
+	}
+	return result
+}
